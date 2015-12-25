@@ -22,6 +22,7 @@ unit_tests: clean
 	$(MAKE) -C . eunit.erldocs_core
 test: unit_tests
 	./test/check.sh
+	./test/find-slashed-function-names.sh doc/
 #	./test/test.sh /tmp/erldocs.git
 
 dialyze: app

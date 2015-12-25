@@ -18,7 +18,9 @@ distclean: clean clean-escript clean-deps
 
 debug: debug-app
 
-test: eunit.erldocs_core
+unit_tests: clean
+	$(MAKE) -C . eunit.erldocs_core
+test: unit_tests
 	./test/check.sh
 #	./test/test.sh /tmp/erldocs.git
 

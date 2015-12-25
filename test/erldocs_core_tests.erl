@@ -21,12 +21,16 @@ includes_test () ->
                , "erldocs/include"
                ],
     IncludePaths = ?MODULE_TESTED:includes(AppDir),
-    Got = frps(filename:dirname(AppDir), IncludePaths),
+    Got = rm_merl(frps(filename:dirname(AppDir), IncludePaths)),
     ?assertEqual(Expected, Got).
 
 %% Internals
 
 frps (Prefix, Paths) ->
     [?MODULE_TESTED:filename__remove_prefix(Prefix, Path) || Path <- Paths].
+
+rm_merl (Paths) ->
+    [Path || Path <- Paths,
+             not lists:member("merl", filename:split(Path))].
 
 %% End of Module.

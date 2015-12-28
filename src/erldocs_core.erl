@@ -513,7 +513,7 @@ tr_erlref ({seealso, [{marker, Marker}], Child}, _Acc) ->
 tr_erlref ({desc, [], Child}, _Acc) ->
     {'div', [{class, "description"}], Child};
 tr_erlref ({description, [], Child}, _Acc) ->
-    {'div', [{class, "description"}], Child};
+    {'div', [{class,"description"}], Child};
 
 tr_erlref ({funcs, [], Child}, _Acc) ->
     tr__category("Functions", "functions", Child);
@@ -540,21 +540,25 @@ tr_erlref ({section, [], [{title,[],["DATA TYPES"]}|Child]}, Acc) ->
     DTypes = [ begin
                    CompressedName = TName ++ "/0",
                    case tr__type_name(TName, "0", Acc) of
-                       {h3, [{id,"type-"++TName}], [CompressedName]} = NotFound ->
-                           %% Did not find type, will use taglist's definition
-                           Defs = [X || {tag,_,[{c,_,[X]}]} <- Tags,
-                                        lists:prefix(TName++"(", X)],
-                           case Defs of
-                               [] -> DType = NotFound;
-                               _  -> DType = {h3, [{id,"type-"++TName}], [hd(Defs)]}
-                           end;
+                       {h3, [{id,"type-"++TName}], [CompressedName]} = _NotFound ->
+                           %% %% Did not find type, will use taglist's definition
+                           %% Defs = [X || {tag,_,[{c,_,X}]} <- Tags,
+                           %%              lists:prefix(TName++"(", lists:flatten(X))],
+                           %% case lists:flatten(Defs) of
+                           %%     [] -> DType = _NotFound;
+                           %%     _  -> DType = {h3, [{id,"type-"++TName}], [Defs]}
+                           %% end;
+                           %% Not found: most probably means type isn't exported
+                           ignore;
                        Found ->
-                           DType = Found
-                   end,
-                   [ "\n    "
-                   , {'div', [{class,"type"}], [DType]} ]
+                           DType = Found,
+                           [ "\n    "
+                           , {'div', [{class,"type"}], [DType]}
+                           ]
+                   end
                end || {item,_,[{marker,[{id,"type-"++TName}|_],_}|_]} <- Tags ],
-    tr__category("Types", "types", DTypes);
+    DTs = [DType || DType <- DTypes, DType /= ignore],
+    tr__category("Types", "types", DTs);
 tr_erlref ({section, [], Child}, _Acc) ->
     {'div', [{class,"section"}], Child};
 
@@ -719,6 +723,7 @@ tr__type_name (TName, NVars, Acc) ->
     end.
 
 
+tr__category (_, _, []) -> [];
 tr__category (Name, ID, Child) ->
     { 'div'
     , [{id,ID}, {class,"category"}]

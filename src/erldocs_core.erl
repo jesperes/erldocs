@@ -73,7 +73,7 @@ build (Conf) ->
     AppDirs = [Path || Path <- kf(apps,Conf), filelib:is_dir(Path)],
     IncludePaths = lists:usort(lists:flatmap(fun includes/1, AppDirs)),
 
-    BuildApps = fun (AppDir) -> build_apps(Conf, IncludePaths, bname(AppDir), AppDir) end,
+    BuildApps = fun (AppDir) -> build_apps(Conf, IncludePaths, app_name(AppDir), AppDir) end,
     Index = [I || I <- lists:flatmap(BuildApps, AppDirs), I /= ignore],
 
     case length(kf(apps,Conf)) == length(Index) of
@@ -88,6 +88,16 @@ build (Conf) ->
             ok = javascript_index(Conf, SortedIndex),
             ok = copy_static_files(Conf),
             true
+    end.
+
+app_name (AppDir) ->
+    DotApps = [bname(AppSrc, ".app")
+               || AppSrc <- filelib:wildcard(jname([AppDir, "ebin", "*.app"]))],
+    DotAppSrcs = [bname(AppSrc, ".app.src")
+                  || AppSrc <- filelib:wildcard(jname([AppDir, "src", "*.app.src"]))],
+    case DotApps ++ DotAppSrcs of
+        [AppName|_] -> AppName;
+        [] ->         bname(AppDir)
     end.
 
 build_apps (Conf, IncludePaths, AppName, AppDir) ->

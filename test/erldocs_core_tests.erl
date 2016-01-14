@@ -21,7 +21,7 @@ includes_test () ->
                , "erldocs/include"
                ],
     IncludePaths = ?MODULE_TESTED:includes(AppDir),
-    Got = rm_merl(frps(filename:dirname(AppDir), IncludePaths)),
+    Got = rm_dotgit(rm_merl(frps(filename:dirname(AppDir), IncludePaths))),
     ?assertEqual(Expected, Got).
 
 %% Internals
@@ -32,5 +32,11 @@ frps (Prefix, Paths) ->
 rm_merl (Paths) ->
     [Path || Path <- Paths,
              not lists:member("merl", filename:split(Path))].
+
+rm_dotgit (Paths) ->
+    [binary_to_list(
+       binary:replace(list_to_binary(Path), <<"erldocs.git">>, <<"erldocs">>)
+      )
+     || Path <- Paths].
 
 %% End of Module.

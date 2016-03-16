@@ -53,7 +53,12 @@ mv -v  "$odir".tar.bz2 "$archive"
 mv -v  _"$release" "$site"/log-"$release".txt
 
 modifs=$(cd "$site_root" && git status --porcelain | wc -l)
-[[ "$modifs" -eq 2 ]] && echo "No interesting changes to push." && date && exit 0
+if [[ "$modifs" -eq 2 ]] ; then
+    echo "No interesting changes to push."
+    cd "$site_root" && git checkout master -- .
+    date
+    exit 0
+fi
 cd "$site_root" \
     && git add "$release" \
     && git add  archives/ \

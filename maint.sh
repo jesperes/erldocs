@@ -2,8 +2,10 @@
 
 # Generate erldocs for Erlang/OTP's maint branch.
 
-[[ $# -ne 1 ]] && echo "Usage: $0  ‹path to cloned repo›" && exit 1
-idir="${1%%/}" # Remove trailing slash if exists
+[[ $# -ne 2 ]] && echo "Usage: $0  ‹erldocs.com site Git folder› ‹path to cloned repo›" && exit 1
+site_root="${1%%/}"
+[[ ! -d "$site_root"/.git ]] && echo "$site_root is not a Git repo!" && exit 1
+idir="${2%%/}" # Remove trailing slash if exists
 [[ ! -d "$idir"/.git ]] && echo "$idir is not a Git repo!" && exit 1
 [[ ! -x "$idir"/otp_build ]] && echo "$idir is not the OTP repo!" && exit 1
 
@@ -14,9 +16,8 @@ erldocs='./erldocs'
 release="maint"
 odir="docs-$release"
 
-site_root='site.git'
 site="$site_root/$release"
-[[ ! -d "$site" ]] && echo "maint site not found" && exit 1
+[[ ! -d "$site" ]] && echo "$site not found" && exit 1
 archive="$site_root/archives/${odir}.tar.bz2"
 
 

@@ -26,3 +26,4 @@
 * Have the same syntax coloring rules as emacs as it is the go-to formating tool
 * Add types to the search box somehow
 * Fix OTP's edoc issues reported in [the daily build](//erldocs.com/maint/log-maint.txt)
+* Guess an app's "namespace" or modules prefix from list of modules

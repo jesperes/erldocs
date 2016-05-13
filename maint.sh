@@ -56,7 +56,7 @@ mv -v  _"$release" "$site"/log-"$release".txt
 modifs=$(cd "$site_root" && git status --porcelain | wc -l)
 if [[ "$modifs" -eq 2 ]] ; then
     echo "No interesting changes to push."
-    cd "$site_root" && git checkout master -- .
+    cd "$site_root" && git checkout gh-pages -- .
     date
     exit 0
 fi

@@ -827,7 +827,7 @@ read_xml (XmlFile) ->
         {Xml, _Rest} ->
             xmerl_lib:simplify_element(Xml);
         Error ->
-            ?log("Error in read_xml File ~p Erro ~p", [XmlFile,Error]),
+            ?log("Error in read_xml(~p): ~p", [XmlFile,Error]),
             throw({error_in_read_xml, XmlFile, Error})
     end.
 

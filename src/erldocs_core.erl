@@ -823,11 +823,18 @@ read_xml (XmlFile) ->
            , {encoding, "latin1"}
            , {rules, ?ERLDOCS_XMERL_ETS_TABLE}
            ],
-    case catch xmerl_scan:file(XmlFile, Opts) of
+    try xmerl_scan:file(XmlFile, Opts) of
         {Xml, _Rest} ->
             xmerl_lib:simplify_element(Xml);
         Error ->
             ?log("Error in read_xml(~p): ~p", [XmlFile,Error]),
+            throw({error_in_read_xml, XmlFile, Error})
+    catch
+        E:R ->
+            ST = erlang:get_stacktrace(),
+            Error = {E, R},
+            ?log("Error in read_xml(~p): ~p", [XmlFile,Error]),
+            ?log("~p", [ST]),
             throw({error_in_read_xml, XmlFile, Error})
     end.
 

@@ -10,4 +10,5 @@ make -j escript
 rm -r doc/.xml/
 errors=$(git status --porcelain -- doc/ | wc -l)
 git status --porcelain -- doc/
+git diff -- doc/
 exit $errors

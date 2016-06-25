@@ -871,18 +871,21 @@ is_ignored (_AppName, _Module) -> false.
 -type map_fun(D, R) :: fun((D) -> R).
 -type reduce_fun(T) :: fun((T, _) -> _).
 
--spec pmapreduce (map_fun(T, R), reduce_fun(R), R, [T]) -> [R].
+-spec pmapreduce (map_fun(T, R), reduce_fun(R), R, L) -> [R] when
+      L :: [T].
 pmapreduce (Map, Reduce, Acc0, L) ->
     pmapreduce(Map, Reduce, Acc0, L, erlang:system_info(schedulers_online)).
 
--spec pmapreduce (map_fun(T, R), reduce_fun(R), R, [T], pos_integer()) -> [R].
+-spec pmapreduce (map_fun(T, R), reduce_fun(R), R, L, pos_integer()) -> [R] when
+      L :: [T].
 pmapreduce (Map, Reduce, Acc0, L, N) ->
     Keys = [rpc:async_call(node(), ?MODULE, mapreduce,
                            [Map, Reduce, Acc0, Segment])
             || Segment <- segment(L, N)],
     mapreduce(fun rpc:yield/1, Reduce, Acc0, Keys).
 
--spec mapreduce (map_fun(T, R), reduce_fun(R), R, [T]) -> [R].
+-spec mapreduce (map_fun(T, R), reduce_fun(R), R, L) -> [R] when
+      L :: [T].
 mapreduce (Map, Reduce, Acc0, L) ->
     lists:foldl(fun (Elem, Acc) ->
                         Reduce(Map(Elem), Acc)

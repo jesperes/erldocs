@@ -47,7 +47,7 @@ fi
 odir="docs-$release"
 
 mkdir -p  "$odir"
-rm    -rf "$odir"/*
+rm    -rf "./$odir"/*
 
 logfile=_"$release"
 "$erldocs"          \

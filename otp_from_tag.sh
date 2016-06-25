@@ -22,7 +22,7 @@ kerl="${KERL:-kerl}"
 
 KERL_BUILD_BACKEND=git "$kerl" update releases || exit 2
 grep -Fo "$release" $HOME/.kerl/otp_releases >/dev/null
-[[ $? -ne 0 ]] && echo "Tag '$release' is not known by GitHub!" && exit 1
+[[ $? -ne 0 ]] && echo "Tag '$release' is unknown to GitHub!" && exit 1
 
 
 idir=$HOME/.kerl/builds/"$release"/otp_src_"$release"

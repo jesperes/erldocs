@@ -43,6 +43,15 @@ if [[ ! -f "$idir"/lib/xmerl/doc/src/xmerl.xml ]]; then
     cd -
 fi
 
+release_local_dir=~/.kerl/"$release"
+release_local_dir_used=''
+if [[ ! -d "$release_local_dir" ]]; then
+    "$kerl" install "$release" "$release_local_dir"
+    [[ $? -ne 0 ]] && echo "Could not temporarily install $release in $release_local_dir" && exit 3
+    release_local_dir_used=true
+fi
+. "$release_local_dir"/activate
+echo "Using erl at $(which erl)"
 
 odir="docs-$release"
 
@@ -55,7 +64,10 @@ logfile=_"$release"
     "$idir"/lib/*   \
     "$idir"/erts*   \
     | tee "$logfile"
-[[ $? -ne 0 ]] && exit 3
+[[ $? -ne 0 ]] && exit 4
+
+kerl_deactivate
+[[ ! -z "$release_local_dir_used" ]] && "$kerl" delete installation "$release_local_dir"
 
 rm  -rf "$odir"/.xml
 tar jcf "$odir".tar.bz2 "$odir"

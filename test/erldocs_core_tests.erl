@@ -12,16 +12,20 @@
 %% API tests.
 
 includes_test () ->
-    AppDir = filename:dirname(filename:dirname(filename:absname(?FILE))),
-    Expected = [ ""
-               , "erldocs"
-               , "erldocs/deps"
-               , "erldocs/deps/erlydtl"
-               , "erldocs/deps/erlydtl/include"
-               , "erldocs/include"
+    {ok, ErldocsDotGit} = file:get_cwd(),
+    Expected = [""
+               ,"erldocs"
+               ,"erldocs/_build"
+               ,"erldocs/_build/default"
+               ,"erldocs/_build/default/lib"
+               ,"erldocs/_build/default/lib/erldocs"
+               ,"erldocs/_build/default/lib/erldocs/include"
+               ,"erldocs/_build/default/lib/erlydtl"
+               ,"erldocs/_build/default/lib/erlydtl/include"
+               ,"erldocs/include"
                ],
-    IncludePaths = ?MODULE_TESTED:includes(AppDir),
-    Got = rm_dotgit(rm_merl(frps(filename:dirname(AppDir), IncludePaths))),
+    IncludePaths = ?MODULE_TESTED:includes(ErldocsDotGit),
+    Got = rm_dotgit(rm_merl(frps(filename:dirname(ErldocsDotGit), IncludePaths))),
     ?assertEqual(Expected, Got).
 
 %% Internals

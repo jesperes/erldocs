@@ -11,8 +11,10 @@ sudo: false
 
 before_script:
   - set -e
+  - wget https://s3.amazonaws.com/rebar3/rebar3
+  - chmod +x ./rebar3
 
 script:
-  - make -j
+  - ./rebar3 compile
 
-after_script: make test
+after_script: REBAR3=./rebar3 make test

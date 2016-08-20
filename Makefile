@@ -21,7 +21,7 @@ distclean: clean clean-escript clean-deps
 debug: debug-app
 
 unit_tests:
-	$(REBAR3) eunit
+	$(REBAR3) compile eunit
 test: unit_tests
 	./test/check.sh
 	./test/find-slashed-function-names.sh doc/

@@ -2,17 +2,18 @@ language: erlang
 otp_release:
   - 19.0
   - 18.1
-#  - 17.5 This takes 2:53 against 23s for the others…
-  - 17.4
-  - R16B03-1
-  - R15B03
+##  - 17.5 Fail due to missing merl app.
+##  - R16B03-1
+##- R15B03
 
 sudo: false
 
 before_script:
   - set -e
+  - wget https://s3.amazonaws.com/rebar3/rebar3
+  - chmod +x ./rebar3
 
 script:
-  - make -j
+  - ./rebar3 compile
 
-after_script: make test
+after_script: REBAR3=./rebar3 make test

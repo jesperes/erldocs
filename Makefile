@@ -1,3 +1,5 @@
+REBAR3 ?= rebar3
+
 all: escript | erl.mk
 
 erl.mk:
@@ -18,8 +20,8 @@ distclean: clean clean-escript clean-deps
 
 debug: debug-app
 
-unit_tests: clean
-	$(MAKE) -C . eunit.erldocs_core
+unit_tests:
+	$(REBAR3) eunit
 test: unit_tests
 	./test/check.sh
 	./test/find-slashed-function-names.sh doc/

@@ -8,12 +8,12 @@ otp_release:
 
 sudo: false
 
-before_script:
+install:
   - set -e
   - wget https://s3.amazonaws.com/rebar3/rebar3
   - chmod +x ./rebar3
 
 script:
-  - ./rebar3 compile
+  - REBAR3=./rebar3 make
 
 after_script: REBAR3=./rebar3 make test

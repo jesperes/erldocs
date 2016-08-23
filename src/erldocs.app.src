@@ -1,12 +1,16 @@
-{ application
-, erldocs
-, [ {description, "Alternative Erlang documentation builder."}
-  , {vsn, "0.9.5"}
-  , {modules, []}
-  , {registered, []}
-  , {applications, [ kernel
-                   , stdlib
-                   ]}
-  , {env, []}
-  ]
+{application
+,erldocs
+,[{description, "Alternative Erlang documentation builder."}
+ ,{vsn, "0.9.6"}
+ ,{modules, []}
+ ,{registered, []}
+ ,{applications, [kernel
+                 ,stdlib
+                 ]}
+ ,{env, []}
+ ,{maintainers, ["Pierre Fenoll"]}
+ ,{licenses, ["MIT"]}
+ ,{links, [{"Github", "https://github.com/erldocs/erldocs"}
+          ]}
+ ]
 }.

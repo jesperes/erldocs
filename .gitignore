@@ -1,6 +1,2 @@
-deps
-ebin
-
-erl.mk
 /erldocs
 _build

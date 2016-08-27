@@ -2,8 +2,7 @@ REBAR3 ?= rebar3
 
 .PHONY: all distclean dialyze
 
-all: _build/default/bin/erldocs
-_build/default/bin/erldocs:
+all:
 	$(REBAR3) compile
 
 unit_tests: all

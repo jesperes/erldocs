@@ -13,7 +13,6 @@ install:
   - wget https://s3.amazonaws.com/rebar3/rebar3
   - chmod +x ./rebar3
 
-script:
-  - REBAR3=./rebar3 make
+script: ./rebar3 do update,upgrade,compile
 
 after_script: REBAR3=./rebar3 make test

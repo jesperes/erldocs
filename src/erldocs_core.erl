@@ -11,8 +11,6 @@
         , mapreduce/4
         , pmapreduce/4
         , pmapreduce/5
-
-        , maybe_delete_xmerl_table/0
         ]).
 
 -ifdef(TEST).
@@ -20,6 +18,7 @@
 - export([filename__remove_prefix/2]).
 -endif.
 
+-include_lib("xmerl/include/xmerl.hrl").
 -include("erldocs.hrl").
 
 -define(log(Str, Args), io:format(Str++"\n", Args)).
@@ -43,7 +42,6 @@ copy_static_files (Conf) ->
 %% appropriate function.
 -spec dispatch (list()) -> boolean().
 dispatch (Conf) ->
-    maybe_create_xmerl_table(),
     DidBuild = build([ {building_otp,is_building_otp(kf(apps,Conf))} | Conf]),
     ?log("Woot, finished"),
     DidBuild.
@@ -821,10 +819,11 @@ read_xml (XmlFile) ->
     Opts = [ {fetch_path, [ jname(DocgenDir, "dtd")
                           , jname(DocgenDir, "dtd_html_entities") ]}
            , {encoding, "latin1"}
-           , {rules, ?ERLDOCS_XMERL_ETS_TABLE}
+           , {rules, fun noets_rules_read/3, fun noets_rules_write/4, ""}
            ],
     try xmerl_scan:file(XmlFile, Opts) of
         {Xml, _Rest} ->
+            ?log("OK: ~p", [Xml]),
             xmerl_lib:simplify_element(Xml);
         Error ->
             ?log("Error in read_xml(~p): ~p", [XmlFile,Error]),
@@ -909,25 +908,6 @@ mkdir_p (Path) ->
         {error, eexist} -> ok
     end.
 
-maybe_create_xmerl_table () ->
-    case is_xmerl_table_created() of
-        true -> ok;
-        false ->
-            Opts = [named_table, ordered_set, public],
-            ?ERLDOCS_XMERL_ETS_TABLE = ets:new(?ERLDOCS_XMERL_ETS_TABLE, Opts)
-    end.
-
-is_xmerl_table_created () ->
-    undefined /= ets:info(?ERLDOCS_XMERL_ETS_TABLE, compressed).
-
-%% @doc
-%% Ensure the table xmerl uses is deleted
-maybe_delete_xmerl_table () ->
-    case is_xmerl_table_created() of
-        false -> ok;
-        true -> ets:delete(?ERLDOCS_XMERL_ETS_TABLE)
-    end.
-
 cons (H, T) -> [H | T].
 
 
@@ -947,5 +927,24 @@ iolists_tl ([_|T]) ->
 %%     iolists_flatten(H) ++ iolists_flatten(T);
 %% iolists_flatten (NotAList) ->
 %%     [NotAList].
+
+noets_rules_write (Context, Name, Value, S=#xmerl_scanner{rules = Dict}) ->
+    case dict:find(Dict, {Context,Name}) of
+        error ->
+            NewDict = dict:store({Context,Name}, Value, Dict),
+            S#xmerl_scanner{rules = NewDict};
+        {ok, _} ->
+            S
+    end.
+
+noets_rules_read (Context, Name, #xmerl_scanner{rules = Dict}) ->
+    case dict:find(Dict, {Context, Name}) of
+        error -> undefined;
+        {ok, V} -> V
+    end.
+
+%% my_rules_delete(Context, Name, #xmerl_scanner{rules = Dict}=S) ->
+%%     S#xmerl_scanner{rules = dict:erase({Context,Name}, Dict)}.
+
 
 %% End of Module.

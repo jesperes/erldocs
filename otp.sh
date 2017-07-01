@@ -7,12 +7,16 @@
 idir="${1%%/}" # Remove trailing slash if exists
 release="$(basename "$idir" | sed 's/otp_src_//')"
 odir="docs-$release"
-erldocs='./erldocs'
+
+erldocs="${ERLDOCS:-./erldocs}"
+[[ ! -x "$erldocs" ]] && [[ ! -L "$erldocs" ]] && \
+    echo "$erldocs executable not found! Trying another..." && \
+    erldocs='./_build/default/bin/erldocs' && \
+    [[ ! -x "$erldocs" ]] && [[ ! -L "$erldocs" ]] && \
+    echo "$erldocs executable not found!" && exit 2
 
 mkdir -p  "$odir"
 rm    -rf "$odir"/*
-[[ ! -x "$erldocs" ]] && [[ ! -L $"$erldocs" ]] && \
-    echo "$erldocs executable not found!" && exit 2
 
 [[ ! -f "$idir"/lib/xmerl/doc/src/xmerl.xml ]] && \
     echo "Please: cd '$idir'; ./configure && make && make docs; cd -" && exit 3

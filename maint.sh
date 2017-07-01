@@ -9,8 +9,11 @@ idir="${2%%/}" # Remove trailing slash if exists
 [[ ! -d "$idir"/.git ]] && echo "$idir is not a Git repo!" && exit 1
 [[ ! -x "$idir"/otp_build ]] && echo "$idir is not the OTP repo!" && exit 1
 
-erldocs='./erldocs'
+erldocs="${ERLDOCS:-./erldocs}"
 [[ ! -x "$erldocs" ]] && [[ ! -L "$erldocs" ]] && \
+    echo "$erldocs executable not found! Trying another..." && \
+    erldocs='./_build/default/bin/erldocs' && \
+    [[ ! -x "$erldocs" ]] && [[ ! -L "$erldocs" ]] && \
     echo "$erldocs executable not found!" && exit 1
 
 release="maint"

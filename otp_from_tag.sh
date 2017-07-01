@@ -13,6 +13,9 @@ release="$2"
 
 erldocs="${ERLDOCS:-./erldocs}"
 [[ ! -x "$erldocs" ]] && [[ ! -L "$erldocs" ]] && \
+    echo "$erldocs executable not found! Trying another..." && \
+    erldocs='./_build/default/bin/erldocs' && \
+    [[ ! -x "$erldocs" ]] && [[ ! -L "$erldocs" ]] && \
     echo "$erldocs executable not found!" && exit 1
 
 kerl="${KERL:-kerl}"

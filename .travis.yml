@@ -1,18 +1,15 @@
+sudo: false
 language: erlang
+before_install: set -e
+install: wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x ./rebar3
+script: REBAR3=./rebar3 make test
+notifications:
+  email:
+    on_success: never
 otp_release:
+  - 20.2
   - 19.0
   - 18.1
 ##  - 17.5 Fail due to missing merl app.
 ##  - R16B03-1
 ##- R15B03
-
-sudo: false
-
-install:
-  - set -e
-  - wget https://s3.amazonaws.com/rebar3/rebar3
-  - chmod +x ./rebar3
-
-script: ./rebar3 do update,upgrade,compile
-
-after_script: REBAR3=./rebar3 make test

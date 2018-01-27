@@ -1,11 +1,11 @@
-{application
-,erldocs
+{application, erldocs
 ,[{description, "Alternative Erlang documentation builder."}
  ,{vsn, "0.9.7"}
  ,{modules, []}
  ,{registered, []}
  ,{applications, [kernel
                  ,stdlib
+                 ,erlydtl
                  ]}
  ,{env, []}
  ,{maintainers, ["Pierre Fenoll"]}

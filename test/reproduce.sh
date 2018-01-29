@@ -2,8 +2,8 @@
 
 [[ $# -ne 1 ]] && echo "Usage: $0  <kerl OTP release>" && exit 2
 rel=$1
-rel_path=test/rel
-ref_path=test/ref
+rel_path=test/otp_rel
+ref_path=test/otp_ref
 
 erldocs=_build/default/bin/erldocs
 [[ -x $erldocs ]] || exit 3
@@ -14,10 +14,12 @@ kerl_bin=/usr/local/bin/kerl
 # cat <<EOF
 # #!/bin/bash -eux
 
-mkdir -p $rel_path $ref_path
+debian_cache=/tmp/erldocs_apt_debian_cache
+mkdir -p $rel_path $ref_path $debian_cache
 docker run --rm --interactive \
-       --volume "$PWD"/$erldocs:/app/erldocs:ro \
+       --volume $debian_cache:/var/cache/apt/archives:rw \
        --volume $kerl_path:$kerl_bin:ro \
+       --volume "$PWD"/$erldocs:/app/erldocs:ro \
        --volume "$PWD"/$rel_path:/rel:rw \
        --volume "$PWD"/$ref_path:/ref:rw \
        debian:8 \
@@ -26,7 +28,7 @@ docker run --rm --interactive \
 
 # Setup
 apt-get update && apt-get upgrade -y
-apt-get install -y git curl build-essential libncurses-dev libssl-dev
+apt-get install -y git curl build-essential libncurses-dev libssl-dev automake autoconf xsltproc
 say() {
     printf '\n\e[1;3m%s\e[0m\n' "\$*"
 }
@@ -35,10 +37,12 @@ say() {
 odir=/ref/docs-$rel
 if [[ ! -f /ref/docs-$rel.tar.bz2 ]]; then
     curl -#fSLo \$odir.tar.bz2 https://erldocs.com/archives/docs-$rel.tar.bz2
-    tar xaf \$odir.tar.bz2
+    tar xaf \$odir.tar.bz2 -C /ref
     ( cd \$odir
       git init
       git add -Af .
+      git config --global user.email bip@bap.ulula
+      git config --global user.name rldcs
       git commit -m ref
     )
 fi
@@ -74,6 +78,7 @@ fi
 
 release_local_dir=\$KERL_BASE_DIR/$rel
 if [[ ! -d \$release_local_dir ]]; then
+    say Installing $rel into \$release_local_dir
     if ! kerl install $rel \$release_local_dir; then
         say Could not install $rel in \$release_local_dir
         exit 3
@@ -81,24 +86,34 @@ if [[ ! -d \$release_local_dir ]]; then
 fi
 chown -R $(id -u):$(id -g) /rel
 say Using erl at "\$(which erl)"
+set +eux  # activate is unclean
 . \$release_local_dir/activate
+set -eux
 
 
 # Run erldocs
-for f in \$odir/* \$odir/.*; do
+pushd \$odir
+for f in * .*; do
     if [[ "\$f" = .git ]] || [[ "\$f" = . ]] || [[ "\$f" = .. ]]; then
         continue
     fi
     rm -rf "\$f"
 done
+popd
 say Running erldocs...
-/app/erldocs -o \$odir \$idir/lib/* \$idir/erts* | tee _$rel
-chown -R $(id -u):$(id -g) /ref
+if /app/erldocs -o \$odir \$idir/lib/* \$idir/erts*; then
+    say Chowning
+    chown -R $(id -u):$(id -g) /ref
 
-say Comparing against reference
-( cd \$odir
-  git status --porcelain
-  [[ '0' = "\$(git status --porcelain | wc -l)" ]]
-)
+    say Comparing against reference
+    ( cd \$odir
+    say Porcelain...
+    git status --porcelain
+    [[ '0' = "\$(git status --porcelain | wc -l)" ]]
+    )
+    say Same-same
+else
+    exit 1
+fi
 
 EOF

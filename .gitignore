@@ -1,2 +1,4 @@
 /erldocs
 _build
+/test/otp_ref
+/test/otp_rel

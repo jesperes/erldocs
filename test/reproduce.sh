@@ -28,7 +28,7 @@ docker run --rm --interactive \
 
 # Setup
 apt-get update && apt-get upgrade -y
-apt-get install -y git curl build-essential libncurses-dev libssl-dev automake autoconf xsltproc
+apt-get install -y git curl build-essential libncurses-dev libssl-dev automake autoconf xsltproc bzip2
 say() {
     printf '\n\e[1;3m%s\e[0m\n' "\$*"
 }
@@ -50,7 +50,8 @@ fi
 
 # Fetch + build + install + build docs
 export KERL_BASE_DIR=/rel
-export KERL_BUILD_BACKEND=git
+# tarball | git
+export KERL_BUILD_BACKEND=tarball
 if ! [[ -f \$KERL_BASE_DIR/otp_releases ]]; then
     kerl update releases
 fi
@@ -62,6 +63,7 @@ fi
 idir=\$KERL_BASE_DIR/builds/$rel/otp_src_$rel
 if [[ ! -d \$idir ]]; then
     kerl build $rel $rel
+    Built $rel
 fi
 
 if [[ ! -f \$idir/lib/xmerl/doc/src/xmerl.xml ]]; then

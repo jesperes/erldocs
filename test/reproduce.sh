@@ -5,8 +5,7 @@ rel=$1
 rel_path=test/otp_rel
 ref_path=test/otp_ref
 
-erldocs=_build/default/bin/erldocs
-[[ -x $erldocs ]] || exit 3
+[[ -d _build ]] && exit 3
 
 kerl_path="$(which kerl)"
 kerl_bin=/usr/local/bin/kerl
@@ -19,7 +18,7 @@ mkdir -p $rel_path $ref_path $alpine_cache
 docker run --rm --interactive \
        --volume $alpine_cache:/var/cache/apk:rw \
        --volume $kerl_path:$kerl_bin:ro \
-       --volume "$PWD"/$erldocs:/app/erldocs:ro \
+       --volume "$PWD":/app/erldocs:rw \
        --volume "$PWD"/$rel_path:/rel:rw \
        --volume "$PWD"/$ref_path:/ref:rw \
        alpine:3.7 \
@@ -71,7 +70,7 @@ if ! grep -Fo '$rel' \$KERL_BASE_DIR/otp_releases >/dev/null; then
 fi
 
 idir=\$KERL_BASE_DIR/builds/$rel/otp_src_$rel
-if [[ ! -d \$idir ]]; then
+if ! [[ -d \$idir ]]; then
     say Commencing build of $rel and docs
     if kerl build $rel $rel; then
         say Built $rel and docs
@@ -82,43 +81,33 @@ if [[ ! -d \$idir ]]; then
 fi
 
 release_local_dir=\$KERL_BASE_DIR/$rel
-if [[ ! -d \$release_local_dir ]]; then
+if ! [[ -d \$release_local_dir ]]; then
     say Installing $rel into \$release_local_dir
     if ! kerl install $rel \$release_local_dir; then
         say Could not install $rel in \$release_local_dir Try rebuilding.
         exit 3
     fi
 fi
-chown -R $(id -u):$(id -g) /rel
-say Using erl at "\$(which erl)"
-set +eux  # activate is unclean
+
+say Using erl from "\$release_local_dir"
+set +o nounset
 . \$release_local_dir/activate
-set -eux
-
-
-# Run erldocs
-( cd \$odir
-for f in * .*; do
-    if [[ "\$f" = .git ]] || [[ "\$f" = . ]] || [[ "\$f" = .. ]]; then
-        continue
-    fi
-    rm -rf "\$f"
-done
-)
-say Running erldocs...
-if /app/erldocs -o \$odir \$idir/lib/* \$idir/erts*; then
-    say Chowning
-    chown -R $(id -u):$(id -g) /ref
-
-    say Comparing against reference
-    ( cd \$odir
-    say Porcelain...
-    git status --porcelain
-    [[ '0' = "\$(git status --porcelain | wc -l)" ]]
-    )
-    say Same-same
-else
-    exit 1
+if ! [ -d /app/rebar3 ]; then
+    git clone --depth=1 https://github.com/erlang/rebar3.git /app/rebar3
+    cd /app/rebar3
+    ./bootstrap
+    ./rebar3 local install
 fi
+export PATH="$PATH":$HOME/.cache/rebar3/bin
+if ! [ -d /app/erldocs/_build ]; then
+    say Building erldocs
+    rebar3 compile
+fi
+rm -rf \$odir/* >/dev/null
+/app/erldocs/_build/default/bin/erldocs -o \$odir \$idir/lib/* \$idir/erts*
+chown -R $(id -u):$(id -g) /ref
+cd \$odir
+git status --porcelain
+[ 0 -eq "\$(git status --porcelain | wc -l)" ]
 
 EOF

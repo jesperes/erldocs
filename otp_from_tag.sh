@@ -13,7 +13,7 @@ release="$2"
 
 erldocs="${ERLDOCS:-./erldocs}"
 [[ ! -x "$erldocs" ]] && [[ ! -L "$erldocs" ]] && \
-    echo "$erldocs executable not found! Trying another..." && \
+    echo "$erldocs executable not found. Trying another..." && \
     erldocs='./_build/default/bin/erldocs' && \
     [[ ! -x "$erldocs" ]] && [[ ! -L "$erldocs" ]] && \
     echo "$erldocs executable not found!" && exit 1
@@ -34,16 +34,16 @@ if [[ ! -d "$idir" ]]; then
 fi
 
 if [[ ! -f "$idir"/lib/xmerl/doc/src/xmerl.xml ]]; then
-    cd "$idir"
-    echo "Commencing build of $release's docs" \
-        && MAKEFLAGS=-j6 ./otp_build setup -a \
-        && MAKEFLAGS=-j6 make docs
-    if [[ $? -ne 0 ]]; then
-        echo "Could not make $release"
-        cd -
-        exit 2
-    fi
-    cd -
+    ( cd "$idir"
+      export MAKEFLAGS="-j\$(getconf _NPROCESSORS_ONLN)"
+      echo "Commencing build of $release's docs" \
+          && ./otp_build setup -a \
+          && make docs
+      if [[ $? -ne 0 ]]; then
+          echo "Could not make $release"
+          exit 2
+      fi
+    )
 fi
 
 release_local_dir=~/.kerl/"$release"

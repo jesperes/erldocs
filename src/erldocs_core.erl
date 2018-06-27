@@ -20,6 +20,7 @@
 - export([filename__remove_prefix/2]).
 -endif.
 
+-include_lib("otp_vsn/include/otp_vsn.hrl").
 -include("erldocs.hrl").
 
 -define(log(Str, Args), io:format(Str++"\n", Args)).
@@ -294,9 +295,9 @@ tmp_cd (Dir, Fun) ->
         ok = file:set_cwd(OldDir),
         Result
     catch
-        Type:Err ->
+        ?OTP_VSN_STACKTRACE(Type, Err, ST)
             ok = file:set_cwd(OldDir),
-            throw({Type, Err, erlang:get_stacktrace()})
+            throw({Type, Err, ST})
     end.
 
 
@@ -830,8 +831,7 @@ read_xml (XmlFile) ->
             ?log("Error in read_xml(~p): ~p", [XmlFile,Error]),
             throw({error_in_read_xml, XmlFile, Error})
     catch
-        E:R ->
-            ST = erlang:get_stacktrace(),
+        ?OTP_VSN_STACKTRACE(E, R, ST)
             Error = {E, R},
             ?log("Error in read_xml(~p): ~p", [XmlFile,Error]),
             ?log("~p", [ST]),

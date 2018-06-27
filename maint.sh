@@ -27,19 +27,19 @@ archive="$site_root/archives/${odir}.tar.bz2"
 mkdir -p  "$odir"
 rm    -rf "$odir"/*
 
-cd "$idir"
-echo "Commencing pull & build of $release branch" \
-    && git checkout -- . \
-    && git checkout maint \
-    && git pull origin maint \
-    && MAKEFLAGS=-j6 ./otp_build setup -a \
-    && MAKEFLAGS=-j6 make docs
-if [[ $? -ne 0 ]]; then
-    echo "Could not make $release"
-    cd -
-    exit 2
-fi
-cd -
+( cd "$idir"
+  export MAKEFLAGS="-j\$(getconf _NPROCESSORS_ONLN)"
+  echo "Commencing pull & build of $release branch" \
+      && git checkout -- . \
+      && git checkout maint \
+      && git pull origin maint \
+      && ./otp_build setup -a \
+      && make docs
+  if [[ $? -ne 0 ]]; then
+      echo "Could not make $release"
+      exit 2
+  fi
+)
 
 "$erldocs"          \
     -o "$odir"      \

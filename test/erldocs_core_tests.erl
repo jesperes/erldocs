@@ -22,6 +22,8 @@ includes_test () ->
                ,"erldocs/_build/default/lib/erldocs/include"
                ,"erldocs/_build/default/lib/erlydtl"
                ,"erldocs/_build/default/lib/erlydtl/include"
+               ,"erldocs/_build/default/lib/otp_vsn"
+               ,"erldocs/_build/default/lib/otp_vsn/include"
                ,"erldocs/_build/default/plugins"
                ,"erldocs/_build/default/plugins/erlydtl"
                ,"erldocs/_build/default/plugins/erlydtl/include"

@@ -16,6 +16,14 @@ say() {
     printf '\n\e[1;3m%s\e[0m\n' "$*"
 }
 
+# Fetch + build + install + build docs
+gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"
+# This makes build fail with: "cannot generate otp_ded.mk" for the wrong arch...
+# export KERL_CONFIGURE_OPTIONS="--build=$gnuArch"
+export KERL_BASE_DIR=/rel
+export KERL_BUILD_BACKEND=tarball  # git | tarball
+export KERL_BUILD_DOCS=yes
+
 # Fetch reference build of docs
 odir=/ref/docs-$REL
 if [ ! -d "$odir" ]; then
@@ -27,23 +35,18 @@ if [ ! -d "$odir" ]; then
       git config --global user.email bip@bap.ulula
       git config --global user.name rldcs
       git commit -m ref
+      chown -R "$IDU":"$IDG" "$odir"
+      say Ref stamped at "$odir"
     )
 fi
 
-
-# Fetch + build + install + build docs
-gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"
-# This makes build fail with: "cannot generate otp_ded.mk" for the wrong arch...
-# export KERL_CONFIGURE_OPTIONS="--build=$gnuArch"
-export KERL_BASE_DIR=/rel
-export KERL_BUILD_BACKEND=tarball  # git | tarball
-export KERL_BUILD_DOCS=yes
 MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"; export MAKEFLAGS
 say Building on "$gnuArch" with "$MAKEFLAGS"
 if ! [ -f $KERL_BASE_DIR/otp_releases ]; then
     kerl update releases
 fi
 if ! grep -Fo "$REL" $KERL_BASE_DIR/otp_releases >/dev/null; then
+    chown -R "$IDU":"$IDG" "$KERL_BASE_DIR"
     say Tag "$REL" is unknown to GitHub!
     exit 1
 fi
@@ -54,6 +57,8 @@ if ! [ -d "$idir" ]; then
     if kerl build "$REL" "$REL"; then
         say Built "$REL" and docs
     else
+        chown -R "$IDU":"$IDG" "$KERL_BASE_DIR"
+        cat $KERL_BASE_DIR/builds/$REL/otp_build_$REL.log
         say Could not make "$REL" and docs
         exit 2
     fi
@@ -63,6 +68,7 @@ release_local_dir=$KERL_BASE_DIR/$REL
 if ! [ -d "$release_local_dir" ]; then
     say Installing "$REL" into "$release_local_dir"
     if ! kerl install "$REL" "$release_local_dir"; then
+        chown -R "$IDU":"$IDG" "$KERL_BASE_DIR"
         say Could not install "$REL" in "$release_local_dir" Try rebuilding.
         exit 3
     fi
@@ -93,7 +99,7 @@ fi
 
 rm -rf "${odir:?}"/* "${odir:?}"/.xml >/dev/null
 "$erldocs" -o "$odir" "$idir"/lib/* "$idir"/erts*
-chown -R "$IDU":"$IDG" /ref /rel
+chown -R "$IDU":"$IDG" /ref $KERL_BASE_DIR
 cd "$odir"
 git status --porcelain
 [ '0' = "$(git status --porcelain | wc -l)" ]
